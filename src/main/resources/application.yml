@@ -1,0 +1,32 @@
+spring:
+  application:
+    name: LAN_server
+  datasource:
+    url: jdbc:mysql://localhost:3306/NetworkDisk
+    username: root
+    password: Drl@2806989503
+  servlet:
+    multipart:
+      max-file-size: 100MB
+      max-request-size: 100MB
+  jackson:
+    default-property-inclusion: non_null
+
+mybatis:
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+    map-underscore-to-camel-case: true
+
+server:
+  port: 9000
+
+image:
+  read:
+    location: /resources/images/
+  storage:
+    location: /Users/zero/Code/IdeaProjects/LAN_server/storage/images/
+
+
+file:
+  storage:
+    location: /Users/zero/Code/IdeaProjects/LAN_server/storage/files/

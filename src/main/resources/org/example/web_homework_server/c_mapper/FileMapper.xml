@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.example.web_homework_server.c_mapper.FileMapper">
+    <insert id="createFile">
+        insert into file(file_path, username, isPublic)
+        values (#{path}, #{username}, 1)
+    </insert>
+
+    <select id="selectFileByPath" resultType="org.example.web_homework_server.pojo.File_my">
+        select *
+        from file
+        where file_path = #{path}
+    </select>
+
+    <delete id="deleteFolder">
+        delete from file where file_path = #{path}
+    </delete>
+
+    <update id="moveFolder">
+        update file
+        set file_path = #{newPath}
+        where file_path = #{oldPath}
+    </update>
+
+
+</mapper>

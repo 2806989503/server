@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.example.web_homework_server.c_mapper.PostMapper">
+
+<!--    <select id="list" resultType="java.lang.String">-->
+<!--        select title-->
+<!--        from view-->
+<!--        where mORr = #{isM}-->
+<!--    </select>-->
+
+    <select id="select" resultType="org.example.web_homework_server.pojo.Post">
+        select *
+        from post
+        where id = #{id}
+    </select>
+
+<!--    <select id="selectImages" resultType="java.lang.String">-->
+<!--        select images-->
+<!--        from view-->
+<!--        where title = #{name}-->
+<!--    </select>-->
+
+    <resultMap id="commentMap" type="org.example.web_homework_server.pojo.Comment">
+        <result property="review" column="content" />
+        <association property="user" javaType="org.example.web_homework_server.pojo.User">
+            <!-- 在这里映射 User 对象的字段 -->
+            <result property="username" column="username" />
+            <result property="imgUrl" column="imgUrl"/>
+            <result property="password" column="password"/>
+            <!-- 其他 User 字段的映射 -->
+        </association>
+    </resultMap>
+
+    <select id="allComments" resultMap="commentMap">
+        SELECT
+            comment.content,
+            user.*
+        FROM
+            comment
+                INNER JOIN user ON comment.author_id = user.id
+                INNER JOIN post ON comment.spot_id = post.id
+        WHERE
+            post.id = #{id};
+    </select>
+
+    <insert id="addComment">
+        insert into comment (content,create_time, author_id, spot_id)
+        values (#{comment}, #{createTime}, #{authorId}, #{spotId})
+    </insert>
+
+    <insert id="createPost" useGeneratedKeys="true" keyProperty="id">
+        insert into post (title, description, userName)
+        values (#{title}, #{description}, #{userName})
+    </insert>
+    
+    <select id="listByUser" resultType="long">
+        select id
+        from post
+        where userName = #{username}
+    </select>
+
+    <!-- 删除帖子 -->
+    <delete id="deletePost">
+        delete from post where id = #{id}
+    </delete>
+
+    <!-- 删除帖子相关的评论 -->
+    <delete id="deleteCommentsBySpotId">
+        delete from comment where spot_id = #{id}
+    </delete>
+
+
+    <select id="listAll" resultType="long">
+        select id
+        from post
+    </select>
+    
+    <select id="getBook" resultType="org.example.web_homework_server.pojo.Book">
+        select *
+        from book_table
+        where id = #{id}
+    </select>
+
+
+
+
+</mapper>

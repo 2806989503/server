@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.example.web_homework_server.c_mapper.ImageMapper">
+
+    <insert id="insert" parameterType="org.example.web_homework_server.pojo.Image">
+        INSERT INTO image (name, url_read, url_local, view_id, user_name)
+        VALUES (#{name}, #{url_read}, #{url_local}, #{viewId}, #{userName})
+    </insert>
+
+    <select id="getUrl" resultType="string">
+        select url_read
+        from image
+        where name = #{name}
+    </select>
+
+    <select id="selectLocalUrl" resultType="string">
+        select url_local
+        from image
+        where view_id = #{idPost}
+    </select>
+
+    <delete id="deleteByPostId">
+        delete from image where view_id = #{postId}
+    </delete>
+
+    <select id="selectReadUrl" resultType="string">
+        select url_read
+        from image
+        where view_id = #{idPost}
+    </select>
+
+</mapper>
