@@ -30,3 +30,7 @@ image:
 file:
   storage:
     location: /Users/zero/Code/IdeaProjects/LAN_server/storage/files/
+
+proxy:
+  portA: 9001
+  portB: 9002
