@@ -32,5 +32,7 @@ file:
     location: /Users/zero/Code/IdeaProjects/LAN_server/storage/files/
 
 proxy:
+  hostA: localhost
+  hostB: localhost
   portA: 9001
   portB: 9002

@@ -21,13 +21,13 @@ public class ProxyServer {
 
     @PostConstruct
     public void start() throws InterruptedException {
-        startServer(proxyConfig.getPortA(), proxyConfig.getPortB());
-        startServer(proxyConfig.getPortB(), proxyConfig.getPortA());
+        startServer(proxyConfig.getHostA(), proxyConfig.getPortA(), proxyConfig.getHostB(), proxyConfig.getPortB());
+        startServer(proxyConfig.getHostB(), proxyConfig.getPortB(), proxyConfig.getHostA(), proxyConfig.getPortA());
     }
 
-    private void startServer(int listenPort, int forwardPort) {
-        EventLoopGroup bossGroup = new NioEventLoopGroup();
-        EventLoopGroup workerGroup = new NioEventLoopGroup();
+    private void startServer(String listenHost, int listenPort, String forwardHost, int forwardPort) {
+        EventLoopGroup bossGroup = new NioEventLoopGroup(1); // 限制boss线程数
+        EventLoopGroup workerGroup = new NioEventLoopGroup(2); // 限制worker线程数
 
         try {
             new ServerBootstrap()
@@ -36,9 +36,11 @@ public class ProxyServer {
                 .childHandler(new ChannelInitializer<SocketChannel>() {
                     @Override
                     protected void initChannel(SocketChannel ch) {
-                        ch.pipeline().addLast(new ProxyHandler(forwardPort));
+                        ch.pipeline().addLast(new ProxyHandler(forwardHost, forwardPort));
                     }
                 })
+                .option(ChannelOption.SO_BACKLOG, 100) // 添加连接队列限制
+                .childOption(ChannelOption.SO_KEEPALIVE, true)
                 .bind(listenPort)
                 .sync()
                 .channel()
@@ -48,21 +50,24 @@ public class ProxyServer {
                     workerGroup.shutdownGracefully();
                 });
         } catch (InterruptedException e) {
+            bossGroup.shutdownGracefully(); // 异常时释放资源
+            workerGroup.shutdownGracefully();
             throw new RuntimeException(e);
         }
     }
 
     @ChannelHandler.Sharable
     static class ProxyHandler extends ChannelInboundHandlerAdapter {
+        private final String forwardHost;
         private final int forwardPort;
 
-        public ProxyHandler(int forwardPort) {
+        public ProxyHandler(String forwardHost, int forwardPort) {
+            this.forwardHost = forwardHost;
             this.forwardPort = forwardPort;
         }
 
         @Override
         public void channelActive(ChannelHandlerContext ctx) {
-            // 创建目标端口连接
             Bootstrap bootstrap = new Bootstrap();
             bootstrap.group(ctx.channel().eventLoop())
                 .channel(NioSocketChannel.class)
@@ -73,7 +78,7 @@ public class ProxyServer {
                     }
                 });
 
-            bootstrap.connect("localhost", forwardPort)
+            bootstrap.connect(forwardHost, forwardPort)
                 .addListener((ChannelFutureListener) future -> {
                     if (future.isSuccess()) {
                         future.channel().attr(AttributeKey.valueOf("sourceChannel")).set(ctx.channel());
@@ -82,6 +87,15 @@ public class ProxyServer {
                         ctx.close();
                     }
                 });
+        }
+
+        @Override
+        public void channelInactive(ChannelHandlerContext ctx) {
+            Channel target = ctx.channel().attr(AttributeKey.<Channel>valueOf("targetChannel")).get();
+            if (target != null) {
+                target.close();
+            }
+            ctx.close();
         }
 
         @Override
